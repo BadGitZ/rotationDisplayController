@@ -34,6 +34,8 @@ void reverseMotor(void);
 void changeMotorSpeed(uint8_t speed);
 uint8_t getMotorSpeed(void);
 volatile timer_t* getMotorTimer(void);
+bool isMotorRunning(void);
+bool isMotorCounterclock(void);
 
 void updateMotor(void);
 

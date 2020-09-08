@@ -61,7 +61,7 @@ void updateLeds(void) {
     spiTransfer(0x00);
 }
 
-//set LED values
+//set individual LED values
 void setLed(uint8_t address, uint8_t brightness, uint8_t red, uint8_t green, uint8_t blue) {
     led[address].brightness = brightness;
     led[address].red = red;
@@ -69,8 +69,9 @@ void setLed(uint8_t address, uint8_t brightness, uint8_t red, uint8_t green, uin
     led[address].blue = blue;
 }
 
+//sets all Led values except for the control led
 void setAllLeds(uint8_t brightness, uint8_t red, uint8_t green, uint8_t blue) {
-    for (uint8_t i = 0; i < LEDCOUNT; i++) {
+    for (uint8_t i = 1; i < LEDCOUNT; i++) {
         led[i].brightness = brightness;
         led[i].red = red;
         led[i].green = green;

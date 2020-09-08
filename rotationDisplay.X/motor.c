@@ -54,6 +54,14 @@ void changeMotorSpeed(uint8_t speed) {
     displayMotor.speed = speed;
 }
 
+bool isMotorRunning(void) {
+  return displayMotor.isRunning;
+}
+
+bool isMotorCounterclock(void) {
+  return displayMotor.direction;
+}
+
 uint8_t getMotorSpeed(void) {
     return displayMotor.speed;
 }

@@ -28,6 +28,8 @@ float rightButton = 0;
 float downButton = 0;
 float leftButton = 0;
 
+bool ledMode = false;
+
 //Initializes the ADC peripheral
 static void ADCInit() {  
     //B3 ADC Pin for 5 Buttons
@@ -77,26 +79,90 @@ static buttons_t getJoyState() {
 static void processInput(buttons_t button) {
   
   switch(button) {
+    //changes between led mode and motor mode ----------------------------------
     case middle:
-      setAllLeds(3, 255, 0, 0);
-      updateLeds();
+      if (ledMode) {
+        ledMode = false;
+        if (isMotorRunning()) {
+            if (isMotorCounterclock()) {
+                setLed(0, 1, 0, 0, 10);
+            }
+            else {
+                setLed(0, 1, 0, 10, 0);
+            } 
+        }
+        else {
+            setLed(0, 1, 10, 0, 0);
+        }
+        updateLeds();
+      } 
+      else {
+        ledMode = true;
+        setLed(0, 3, 255, 255, 255);
+        updateLeds();
+      }
       break;
+    //starts Motor Clockwise and dimming mode ----------------------------------  
     case up:
-      setAllLeds(3, 0, 255, 0);
-      updateLeds();
+      if (ledMode) {
+        setLed(0, 3, 0, 255, 0);
+        updateLeds();
+      }
+      else {
+        startMotor();
+        if (isMotorCounterclock()) {
+            reverseMotor();
+            setLed(0, 1, 0, 255, 0);
+            updateLeds();
+        }
+        else {
+              stopMotor();
+              setLed(0, 1, 255, 0, 0);
+              updateLeds();
+        }
+      }
       break;
+    //accelerates Motor and rgb selection mode ---------------------------------
     case right:
-      setAllLeds(3, 0, 0, 255);
-      updateLeds();
+      if (ledMode) {
+        setLed(0, 3, 0, 0, 255);
+        updateLeds();
+      }
+      else {
+          changeMotorSpeed(getMotorSpeed() + 5);
+      }
       break;
+    //start Motor counterclockwise and brightness ------------------------------  
     case down:
-      setAllLeds(3, 0, 255, 255);
-      updateLeds();
+      if (ledMode) {
+        setLed(0, 3, 0, 255, 255);
+        updateLeds();
+      }
+      else {
+          startMotor();
+          if(!isMotorCounterclock()) {
+              reverseMotor();
+              setLed(0, 1, 0, 0, 255);
+              updateLeds();
+          }
+          else {
+              stopMotor();
+              setLed(0, 1, 255, 0, 0);
+              updateLeds();
+          }
+      }
       break;
+    //decrease Motor speed and cycle Mode  
     case left:
-      setAllLeds(3, 255, 255, 0);
-      updateLeds();
+      if (ledMode) {
+        setLed(0, 3, 255, 255, 0);
+        updateLeds();
+      }
+      else {
+          changeMotorSpeed(getMotorSpeed() - 5);
+      }
       break;
+      
     default:
       break;
   }
@@ -136,37 +202,42 @@ static void configureButtonValues() {
     float* pButtonVoltage = 0;
     
     //make Setup mode visible
-    setAllLeds(3, 255, 255, 255);
+    setLed(0, 3, 255, 255, 255);
     updateLeds();
   
     waitTicks(5000);
     //doing the measurements
     for (buttons_t currentButton = middle; currentButton < none; currentButton++) {
         voltage = 0;
-        setAllLeds(3, 0, 0, 0);
+        setLed(0, 3, 0, 0, 0);
         updateLeds();
         waitTicks(5000);
         switch (currentButton) {
           case middle:
-            setAllLeds(3, 255, 0, 0);
+            setLed(0, 3, 255, 0, 0);
             pButtonVoltage = (float*)(MIDDLE_BUTTON_EEPADDR);
             break;
+            
           case up:
-            setAllLeds(3, 0, 255, 0);
+            setLed(0, 3, 0, 255, 0);
             pButtonVoltage = (float*)(UP_BUTTON_EEPADDR);
             break;
+            
           case right:
-            setAllLeds(3, 0, 0, 255);
+            setLed(0, 3, 0, 0, 255);
             pButtonVoltage = (float*)(RIGHT_BUTTON_EEPADDR);
             break;
+            
           case down:
-            setAllLeds(3, 0, 255, 255);
+            setLed(0, 3, 0, 255, 255);
             pButtonVoltage = (float*)(DOWN_BUTTON_EEPADDR);
             break;
+            
           case left:
-            setAllLeds(3, 255, 255, 0);
+            setLed(0, 3, 255, 255, 0);
             pButtonVoltage = (float*)(LEFT_BUTTON_EEPADDR);
             break;
+            
           default:
             break;
         }
@@ -202,11 +273,8 @@ int main(void)
         configureButtonValues();
     }
     getButtonValues();
-    
-    //return to normal operation
-    startMotor();
-	
-    setLed(0, 1, 1, 1, 1);
+    	
+    setLed(0, 1, 10, 0, 0);
     updateLeds();
 	
     uint32_t counter = getTick();
