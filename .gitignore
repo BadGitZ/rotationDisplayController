@@ -1,4 +1,4 @@
 Makefile
-/dist
-/build
-/nbproject
+**/dist
+**/build
+**/nbproject
