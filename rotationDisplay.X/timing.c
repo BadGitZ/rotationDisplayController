@@ -7,6 +7,7 @@
 
 #include "timing.h"
 #include "motor.h"
+#include "main.h"
 
 uint32_t ms_tick = 0;
 timer_t* motorTimer;
@@ -14,6 +15,7 @@ timer_t* motorTimer;
 ISR(TIMER0_COMPA_vect) {
     ms_tick++;
     timer_tick(getMotorTimer());
+    timer_tick(getdebounceTimer());
 }
 
 void hwTimerInit(void) {

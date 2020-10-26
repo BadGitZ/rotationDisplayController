@@ -12,6 +12,8 @@
 #include <avr/eeprom.h>
 #include <stdbool.h>
 
+#include "timing.h"
+
 #define MIDDLE_BUTTON_EEPADDR 0x00
 #define UP_BUTTON_EEPADDR 0x04
 #define RIGHT_BUTTON_EEPADDR 0x08
@@ -27,6 +29,7 @@ typedef enum {
     none
 } buttons_t;
 
+volatile timer_t* getdebounceTimer(void);
 void waitTicks(uint32_t ticks);
 
 #endif /* __MAIN_H */

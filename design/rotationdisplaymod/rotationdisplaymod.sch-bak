@@ -402,4 +402,10 @@ Text Label 4700 1850 0    50   ~ 0
 Pin3
 Text Label 4700 3100 0    50   ~ 0
 Pin4
+Text Label 5050 2600 0    50   ~ 0
+NPin0
+Text Label 6550 2850 0    50   ~ 0
+Motor1
+Text Label 6550 2950 0    50   ~ 0
+Motor2
 $EndSCHEMATC

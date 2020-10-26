@@ -27,7 +27,7 @@ void initialzeMotor(void) {
 	
     displayMotor.speed = 10;
     displayMotor.currentSpeed = 0;
-    displayMotor.direction = clockwise;
+    displayMotor.direction = counterclockwise;
     displayMotor.isRunning = false;
     displayMotor.isReversing = false;
     timer_init(&displayMotor.motorTimer, 10);

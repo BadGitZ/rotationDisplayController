@@ -69,6 +69,28 @@ void setLed(uint8_t address, uint8_t brightness, uint8_t red, uint8_t green, uin
     led[address].blue = blue;
 }
 
+void increaseAllLeds(uint8_t redincrement, uint8_t greenincrement, uint8_t blueincrement) {
+  for (uint8_t i = 1; i < LEDCOUNT; i++) {
+      if (led[i].red < 255)
+        led[i].red += redincrement;
+      if (led[i].green < 255)
+        led[i].green += greenincrement;
+      if (led[i].blue < 255)
+        led[i].blue += blueincrement;
+    }
+}
+
+void decreaseAllLeds(uint8_t reddecrement, uint8_t greendecrement, uint8_t bluedecrement) {
+  for (uint8_t i = 1; i < LEDCOUNT; i++) {
+      if (led[i].red > 0)
+        led[i].red -= reddecrement;
+      if (led[i].green > 0)
+        led[i].green -= greendecrement;
+      if (led[i].blue > 0)
+        led[i].blue -= bluedecrement;
+    }
+}
+
 //sets all Led values except for the control led
 void setAllLeds(uint8_t brightness, uint8_t red, uint8_t green, uint8_t blue) {
     for (uint8_t i = 1; i < LEDCOUNT; i++) {

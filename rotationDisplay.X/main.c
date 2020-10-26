@@ -12,7 +12,6 @@
 #include "main.h"
 #include "led.h"
 #include "motor.h"
-#include "timing.h"
 
 static void ADCInit();
 static void getButtonValues();
@@ -29,6 +28,15 @@ float downButton = 0;
 float leftButton = 0;
 
 bool ledMode = false;
+
+uint8_t rgbEffect = 0;
+uint8_t rgbSelect = 0;
+
+timer_t debounceTimer;
+
+volatile timer_t* getdebounceTimer(void) {
+  return &debounceTimer;
+}
 
 //Initializes the ADC peripheral
 static void ADCInit() {  
@@ -76,96 +84,151 @@ static buttons_t getJoyState() {
 }
 
 //executes User Input
-static void processInput(buttons_t button) {
-  
-  switch(button) {
-    //changes between led mode and motor mode ----------------------------------
-    case middle:
-      if (ledMode) {
-        ledMode = false;
-        if (isMotorRunning()) {
-            if (isMotorCounterclock()) {
-                setLed(0, 1, 0, 0, 10);
+static void processInput (buttons_t button)
+{
+  if (is_timer_down (&debounceTimer))
+    {
+      switch (button)
+        {
+          //changes between led mode and motor mode ----------------------------
+        case middle:
+          if (ledMode)
+            {
+              ledMode = false;
+              if (isMotorRunning ())
+                {
+                  if (isMotorCounterclock ())
+                    {
+                      setLed (0, 1, 0, 0, 10);
+                    }
+                  else
+                    {
+                      setLed (0, 1, 0, 10, 0);
+                    }
+                }
+              else
+                {
+                  setLed (0, 1, 10, 0, 0);
+                }
+              updateLeds ();
             }
-            else {
-                setLed(0, 1, 0, 10, 0);
-            } 
+          else
+            {
+              ledMode = true;
+              setLed (0, 3, 255, 255, 255);
+              updateLeds ();
+            }
+          break;
+          //starts Motor Clockwise and Brightness up ---------------------------
+        case up:
+          if (ledMode)
+            {
+              switch(rgbSelect) {
+                case 0:
+                  increaseAllLeds (1, 1, 1);
+                  break;
+                case 1:
+                  increaseAllLeds (1, 0, 0);
+                  break;
+                case 2:
+                  increaseAllLeds (0, 1, 0);
+                  break;
+                case 3:
+                  increaseAllLeds (0, 0, 1);
+                  break;
+                default:
+                  break;
+              }
+              updateLeds ();
+            }
+          else
+            {
+              startMotor ();
+              if (isMotorCounterclock ())
+                {
+                  reverseMotor ();
+                  setLed (0, 1, 0, 255, 0);
+                  updateLeds ();
+                }
+              else
+                {
+                  stopMotor();
+                  setLed (0, 1, 255, 0, 0);
+                  updateLeds ();
+                }
+            }
+          break;
+          //accelerates Motor and rgb Selection --------------------------------
+        case right:
+          if (ledMode)
+            {
+              rgbSelect++;
+              if (rgbSelect > 3) {
+                  rgbSelect = 0;
+              } 
+            }
+          else
+            {
+              changeMotorSpeed (getMotorSpeed () + 5);
+            }
+          break;
+          //start Motor counterclockwise and Brightness down -------------------
+        case down:
+          if (ledMode)
+            {
+              switch(rgbSelect) {
+                  case 0:
+                    decreaseAllLeds (1, 1, 1);
+                    break;
+                  case 1:
+                    decreaseAllLeds (1, 0, 0);
+                    break;
+                  case 2:
+                    decreaseAllLeds (0, 1, 0);
+                    break;
+                  case 3:
+                    decreaseAllLeds (0, 0, 1);
+                    break;
+                  default:
+                    break;
+              }
+              updateLeds ();
+            }
+          else
+            {
+              startMotor ();
+              if (!isMotorCounterclock ())
+                {
+                  reverseMotor ();
+                  setLed (0, 1, 0, 0, 255);
+                  updateLeds ();
+                }
+              else
+                {
+                  stopMotor ();
+                  setLed (0, 1, 255, 0, 0);
+                  updateLeds ();
+                }
+            }
+          break;
+          //decrease Motor speed and LED Mode Change ---------------------------
+        case left:
+          if (ledMode)
+            {
+              setAllLeds (1, 255, 255, 0);
+              updateLeds ();
+            }
+          else
+            {
+              changeMotorSpeed (getMotorSpeed () - 5);
+            }
+          break;
+
+        default:
+          break;
         }
-        else {
-            setLed(0, 1, 10, 0, 0);
-        }
-        updateLeds();
-      } 
-      else {
-        ledMode = true;
-        setLed(0, 3, 255, 255, 255);
-        updateLeds();
-      }
-      break;
-    //starts Motor Clockwise and dimming mode ----------------------------------  
-    case up:
-      if (ledMode) {
-        setLed(0, 3, 0, 255, 0);
-        updateLeds();
-      }
-      else {
-        startMotor();
-        if (isMotorCounterclock()) {
-            reverseMotor();
-            setLed(0, 1, 0, 255, 0);
-            updateLeds();
-        }
-        else {
-              stopMotor();
-              setLed(0, 1, 255, 0, 0);
-              updateLeds();
-        }
-      }
-      break;
-    //accelerates Motor and rgb selection mode ---------------------------------
-    case right:
-      if (ledMode) {
-        setLed(0, 3, 0, 0, 255);
-        updateLeds();
-      }
-      else {
-          changeMotorSpeed(getMotorSpeed() + 5);
-      }
-      break;
-    //start Motor counterclockwise and brightness ------------------------------  
-    case down:
-      if (ledMode) {
-        setLed(0, 3, 0, 255, 255);
-        updateLeds();
-      }
-      else {
-          startMotor();
-          if(!isMotorCounterclock()) {
-              reverseMotor();
-              setLed(0, 1, 0, 0, 255);
-              updateLeds();
-          }
-          else {
-              stopMotor();
-              setLed(0, 1, 255, 0, 0);
-              updateLeds();
-          }
-      }
-      break;
-    //decrease Motor speed and cycle Mode  
-    case left:
-      if (ledMode) {
-        setLed(0, 3, 255, 255, 0);
-        updateLeds();
-      }
-      else {
-          changeMotorSpeed(getMotorSpeed() - 5);
-      }
-      break;
-      
-    default:
-      break;
-  }
+      timer_start(&debounceTimer);
+    }
 }
 
 //checks if the User wants to calibrate the analog button values on startup
@@ -267,7 +330,7 @@ int main(void)
     initializeLeds();
     initialzeMotor();
     ADCInit();
-	
+    	
     //if Values need to be configured
     if (checkStartButton()) {
         configureButtonValues();
@@ -275,8 +338,12 @@ int main(void)
     getButtonValues();
     	
     setLed(0, 1, 10, 0, 0);
+    setAllLeds (1, 0, 0, 0);
     updateLeds();
-	
+    
+    timer_init (&debounceTimer, 250);
+    timer_start (&debounceTimer);
+    
     uint32_t counter = getTick();
     while (1) 
     {
@@ -285,6 +352,7 @@ int main(void)
 		
 	if (getTick() - counter >= 1000) {
             counter = getTick();     
+            //PINB |= (1 << PB0);
 	}
     }
 }
@@ -299,7 +367,7 @@ right = motor faster
 
 middle = led mode
 right = rgb select
-left = cycle mode
-down = brightness
-up = dimming mode 
+left = change effect -> normal, cycle, rainbow, dimming
+down = brightness down
+up =  brightness up
 */
